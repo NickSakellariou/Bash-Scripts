@@ -1,0 +1,178 @@
+#!/bin/bash
+if [ $# -eq 0 ]
+  then
+    echo "No arguments supplied"
+elif [ $# -eq 1 ]
+  then
+    echo "2 argumenst are asked"
+elif [ $# -gt 2 ]
+  then
+    echo "Only 2 arguments are asked"
+else
+	number1=$1
+	number2=$2
+	if ! [[ $number1 =~ ^[0-9]+$ ]] ; then
+	   echo "First argument must be a number"
+	   exit 1
+	fi
+	if ! [[ $number2 =~ ^[0-9]+$ ]] ; then
+	   echo "Second argument must be a number"
+	   exit 1
+	fi
+	if ! [[ $number1 =~ ^[0-7][0-7][0-7]+$ ]] ; then
+	   echo "First argument must use 3 digits 0 to 7"
+	   exit 1
+	fi
+	if [ $number1 -gt 777 ]; then
+	   echo "First argument must not be above 777";
+	   exit 1
+	fi
+	
+	exitValue=0
+	totalCount1=0
+	totalCount2=0
+	totalCount3=0
+	totalCount4=0
+	totalCount5=0
+	
+	declare -A arr
+	i=0
+	
+	while [ $exitValue = 0 ]
+	do
+		while [ 1 ]
+		do
+			read -p "Give directory:" directory
+			if [ -d "${directory}" ] ; then
+			    break
+			else
+			    if [ -f "${directory}" ]; then
+				echo "${directory} is a file";
+				continue
+			    else
+				echo "${directory} is not valid";
+				continue
+			    fi
+			fi
+		done
+		
+		count1=`find ${directory} -perm $number1 -not -path '*/\.*' -type f | wc -l`
+		totalCount1=`expr $totalCount1 + $count1`
+		if [ $count1 -eq 1 ]; then
+		   echo "1)There is $count1 file with permissions $number1";
+		   else
+		   	echo "1)There are $count1 files with permissions $number1"; 	
+		fi
+		find ${directory} -perm $number1 -not -path '*/\.*' -type f
+		
+		count2=`find ${directory} -mtime -$number2 -not -path '*/\.*' -type f | wc -l`
+		totalCount2=`expr $totalCount2 + $count2`
+		if [ $count2 -eq 1 ]; then
+		   echo "2)There is $count2 file that was modified in the last $number2 days";
+		   else
+		   	echo "2)There are $count2 files that were modified in the last $number2 days";
+		fi
+		find ${directory} -mtime -$number2 -not -path '*/\.*' -type f
+		
+		count3=`find ${directory} -mtime -$number2 -not -path '*/\.*' -type d | wc -l`
+		totalCount3=`expr $totalCount3 + $count3`
+		if [ $count3 -eq 1 ]; then
+		   echo "3)There is $count3 subdirectory that was modified in the last $number2 days";
+		   else
+		   	echo "3)There are $count3 subdirectories that were modified in the last $number2 days";
+		fi
+		find ${directory} -mtime -$number2 -not -path '*/\.*' -type d
+		
+		count4=`find ${directory} -not -path '*/\.*' -type p -o -type s | wc -l`
+		totalCount4=`expr $totalCount4 + $count4`
+		if [ $count4 -eq 1 ]; then
+		   echo "4)There is $count4 file that is type of pipe or socket";
+		   else
+		   	echo "4)There are $count4 files that is type of pipe or socket";
+		fi
+		find ${directory} -not -path '*/\.*' -type p -o -type s
+		
+		count5=`find ${directory} -maxdepth 1 -not -path '*/\.*' -type f -size 0 | wc -l`
+		totalCount5=`expr $totalCount5 + $count5`
+		if [ $count5 -eq 1 ]; then
+		   echo "5)There is $count5 empty file";
+		   else
+		   	echo "5)There are $count5 empty files";
+		fi
+		find ${directory} -maxdepth 1 -not -path '*/\.*' -type f -size 0
+		
+		arr[$i,0]=$directory
+		arr[$i,1]=$count1
+		arr[$i,2]=$count2
+		arr[$i,3]=$count3
+		arr[$i,4]=$count4
+		arr[$i,5]=$count5
+		
+		i=`expr $i + 1`
+		
+		echo "If you want to quit press any number except 0,if you want to look for another directory, press 0"
+		read exitValue
+	done
+	echo "Final results : "
+	if [ $totalCount1 -eq 1 ]; then
+	   echo "1)You found $totalCount1 file with permissions $number1";
+	   else
+	   	echo "1)You found $totalCount1 files with permissions $number1"; 	
+	fi
+	if [ $totalCount2 -eq 1 ]; then
+	   echo "2)You found $totalCount2 file that was modified in the last $number2 days";
+	   else
+	   	echo "2)You found $totalCount2 files that were modified in the last $number2 days";
+	fi
+	if [ $totalCount3 -eq 1 ]; then
+	   echo "3)You found $totalCount3 subdirectory that was modified in the last $number2 days";
+	   else
+	   	echo "3)You found $totalCount3 subdirectories that were modified in the last $number2 days";
+	fi
+	if [ $totalCount4 -eq 1 ]; then
+	   echo "4)You found $totalCount4 file that is type of pipe or socket";
+	   else
+	   	echo "4)You found $totalCount4 files that is type of pipe or socket";
+	fi
+	if [ $totalCount5 -eq 1 ]; then
+	   echo "5)You found $totalCount5 empty file";
+	   else
+	   	echo "5)You found $totalCount5 empty files";
+	fi
+	
+	j=0
+	
+	while [ 1 ]
+	do
+		echo "Directory : ${arr[$j,0]}"
+		if [ ${arr[$j,1]} -eq 1 ]; then
+		   echo "1)You found ${arr[$j,1]} file with permissions $number1";
+		   else
+		   	echo "1)You found ${arr[$j,1]} files with permissions $number1"; 	
+		fi
+		if [ ${arr[$j,2]} -eq 1 ]; then
+		   echo "2)You found ${arr[$j,2]} file that was modified in the last $number2 days";
+		   else
+		   	echo "2)You found ${arr[$j,2]} files that were modified in the last $number2 days";
+		fi
+		if [ ${arr[$j,3]} -eq 1 ]; then
+		   echo "3)You found ${arr[$j,3]} subdirectory that was modified in the last $number2 days";
+		   else
+		   	echo "3)You found ${arr[$j,3]} subdirectories that were modified in the last $number2 days";
+		fi
+		if [ ${arr[$j,4]} -eq 1 ]; then
+		   echo "4)You found ${arr[$j,4]} file that is type of pipe or socket";
+		   else
+		   	echo "4)You found ${arr[$j,4]} files that is type of pipe or socket";
+		fi
+		if [ $totalCount5 -eq 1 ]; then
+		   echo "5)You found ${arr[$j,5]} empty file";
+		   else
+		   	echo "5)You found ${arr[$j,5]} empty files";
+		fi
+		j=`expr $j + 1`
+		if [ $j -eq $i ]; then
+		   break
+		fi
+	done
+fi

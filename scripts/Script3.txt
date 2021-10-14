@@ -1,0 +1,32 @@
+#!/bin/bash
+totalTime=0
+totalAmount=5000
+totalCustomers=1
+while [ 1 ]
+do
+	read -p "Give time of customer (in minutes):" time
+	if ! [[ $time =~ ^[0-9]+$ ]] ; then
+	   echo "Error: try again" >&2; continue
+	fi
+	read -p "Give amount of payment of customer:" amount
+	if ! [[ $amount =~ ^[-+]?[0-9]+$ ]] ; then
+	   echo "Error: try again" >&2; continue
+	fi
+	totalAmount=`expr $totalAmount + $amount`
+	totalTime=`expr $totalTime + $time`
+	if [[ $totalAmount -lt 0 ]]; then
+	   echo "We can't afford that amount : ${totalAmount#-} €" >&2; break
+	fi
+	if [[ $totalTime -gt 300 ]]; then
+	   echo "5 hours have passed" >&2; break
+	fi
+	totalCustomers=`expr $totalCustomers + 1`
+done
+
+echo "Tameio has closed"
+if [[ $totalCustomers -eq 1 ]]; then
+	echo "1 customer passed"
+else
+	echo "${totalCustomers} total customers passed"
+fi
+echo "Tameio worked ${totalTime} minutes"

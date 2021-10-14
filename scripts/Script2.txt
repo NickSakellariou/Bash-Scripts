@@ -1,0 +1,26 @@
+#!/bin/bash
+sleep 2s
+if [ $# -eq 0 ]
+  then
+    echo "No directory supplied"
+elif [ $# -gt 1 ]
+  then
+    echo "Only 1 argument is asked"
+else
+	PASSED=$1
+	if [ -d "${PASSED}" ] ; then
+	    count1=`find ${PASSED} -maxdepth 1 -perm /u+rw -not -path '*/\.*' -type f | wc -l`
+	    echo "There are $count1 files with read and write permissions for owner";
+	    count2=`find ${PASSED} -maxdepth 1 -perm /g+rw -not -path '*/\.*' -type f | wc -l`
+	    echo "There are $count2 files with read and write permissions for group";
+	    count3=`find ${PASSED} -maxdepth 1 ! -perm /o+rwx -not -path '*/\.*' -type f | wc -l`
+	    echo "There are $count3 files with no permissions for others";
+	else
+	    if [ -f "${PASSED}" ]; then
+		echo "$PASSED is a file";
+	    else
+		echo "${PASSED} is not valid";
+		exit 1
+	    fi
+	fi
+fi
